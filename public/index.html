@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>ДНЕВНИК · ТРЕЙДЕРА | Лидерборд</title>
+    <meta name="theme-color" content="#0b0e14">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <!-- Экран загрузки -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loader"></div>
+        <div style="margin-top: 20px; color: #6c7a8e;">Загрузка...</div>
+    </div>
+
+    <!-- Экран авторизации -->
+    <div id="authScreen" class="auth-screen" style="display: none;">
+        <div class="auth-container">
+            <h1 class="auth-title">TRADER<span style="font-weight:300">.JOURNAL</span></h1>
+
+            <div class="auth-tabs">
+                <button class="auth-tab active" data-tab="login">ВХОД</button>
+                <button class="auth-tab" data-tab="register">РЕГИСТРАЦИЯ</button>
+            </div>
+
+            <!-- Форма входа -->
+            <form id="loginForm" class="auth-form">
+                <input type="text" name="username" placeholder="Имя пользователя" required minlength="3">
+                <input type="password" name="password" placeholder="Пароль" required minlength="6">
+                <button type="submit" class="auth-submit">ВОЙТИ</button>
+            </form>
+
+            <!-- Форма регистрации -->
+            <form id="registerForm" class="auth-form" style="display: none;">
+                <input type="text" name="username" placeholder="Имя пользователя" required minlength="3">
+                <input type="password" name="password" placeholder="Пароль" required minlength="6">
+                <input type="password" name="confirmPassword" placeholder="Подтвердите пароль" required>
+                <button type="submit" class="auth-submit">СОЗДАТЬ АККАУНТ</button>
+            </form>
+
+            <div id="authError" class="auth-error"></div>
+        </div>
+    </div>
+
+    <!-- Основное приложение -->
+    <div id="appScreen" class="app-screen" style="display: none;">
+        <div class="terminal">
+            <div class="journal-card">
+
+                <!-- Навигация -->
+                <div class="nav-tabs">
+                    <button class="nav-tab active" data-view="journal">📊 ДНЕВНИК</button>
+                    <button class="nav-tab" data-view="leaderboard">🏆 ЛИДЕРЫ</button>
+                    <button class="nav-tab" data-view="settings">⚙️ НАСТРОЙКИ</button>
+                </div>
+
+                <!-- Вью: Дневник -->
+                <div id="journalView" class="view-container">
+                    <div class="header">
+                        <h1>JOURNAL.<span style="font-weight:300">TRADE</span></h1>
+                        <div class="date-badge" id="currentDate"></div>
+                    </div>
+
+                    <div class="stats-panel">
+                        <div class="stat-block">
+                            <div class="stat-label">ИТОГ ДНЯ (P/L)</div>
+                            <div class="stat-value" id="totalPL">$0.00</div>
+                        </div>
+                        <div class="stat-block">
+                            <div class="stat-label">ВИНРЕЙТ</div>
+                            <div class="stat-value" id="winRate">0%</div>
+                        </div>
+                    </div>
+
+                    <div class="trade-form">
+                        <div class="form-row">
+                            <div class="input-group" style="flex: 1.2;">
+                                <label>ПАРА</label>
+                                <input type="text" id="pairInput" class="input-field" placeholder="EUR/USD" value="BTC/USDT" maxlength="12">
+                            </div>
+                            <div class="input-group" style="flex: 0.8;">
+                                <label>ОБЪЕМ</label>
+                                <input type="text" id="volumeInput" class="input-field" placeholder="1.5" value="0.5" inputmode="decimal">
+                            </div>
+                            <div style="flex: 1.2; min-width: 170px;">
+                                <label>РЕЗУЛЬТАТ</label>
+                                <div class="pl-switch" id="plSwitch">
+                                    <div class="pl-option profit active" data-type="profit">+ ПРОФИТ</div>
+                                    <div class="pl-option loss" data-type="loss">− ЛОСС</div>
+                                </div>
+                            </div>
+                            <div class="add-btn" id="addTradeBtn">+</div>
+                        </div>
+                    </div>
+
+                    <div class="trades-header">
+                        <span>АКТИВ</span>
+                        <span>ОБЪЕМ</span>
+                        <span>P/L</span>
+                        <span></span>
+                    </div>
+                    <ul class="trades-list" id="tradesList">
+                        <li class="empty-state">∅ НЕТ СДЕЛОК</li>
+                    </ul>
+
+                    <button id="logoutBtn" class="logout-btn">ВЫЙТИ</button>
+                </div>
+
+                <!-- Вью: Доска лидеров -->
+                <div id="leaderboardView" class="view-container" style="display: none;">
+                    <div class="leaderboard-header">
+                        <h2>🏆 ДОСКА ЛИДЕРОВ</h2>
+                        <p class="leaderboard-subtitle">Топ трейдеров по общему P/L</p>
+                    </div>
+
+                    <div class="leaderboard-filters">
+                        <select id="leaderboardLimit" class="leaderboard-select">
+                            <option value="10">Топ 10</option>
+                            <option value="25">Топ 25</option>
+                            <option value="50">Топ 50</option>
+                            <option value="100">Топ 100</option>
+                        </select>
+                        <button id="refreshLeaderboard" class="refresh-btn">🔄 ОБНОВИТЬ</button>
+                    </div>
+
+                    <div class="leaderboard-table-container">
+                        <table class="leaderboard-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>ТРЕЙДЕР</th>
+                                    <th>P/L ($)</th>
+                                    <th>СДЕЛКИ</th>
+                                    <th>ВИНРЕЙТ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leaderboardBody">
+                                <tr><td colspan="5" style="text-align:center;padding:40px;">Загрузка...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Вью: Настройки -->
+                <div id="settingsView" class="view-container" style="display: none;">
+                    <h2 style="margin-bottom:24px;">⚙️ НАСТРОЙКИ</h2>
+
+                    <div class="settings-section">
+                        <h3>ПРОФИЛЬ</h3>
+                        <div class="setting-item">
+                            <span>Имя пользователя:</span>
+                            <strong id="profileUsername">—</strong>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3>ПРИВАТНОСТЬ</h3>
+                        <div class="setting-item">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="publicProfileToggle">
+                                <span>Показывать мой профиль в доске лидеров</span>
+                            </label>
+                            <p class="setting-hint">Если включено, ваша статистика будет видна другим трейдерам</p>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3>ДАННЫЕ</h3>
+                        <button id="exportDataBtn" class="settings-btn">📤 ЭКСПОРТ ДАННЫХ</button>
+                        <button id="importDataBtn" class="settings-btn" style="margin-top:10px;">📥 ИМПОРТ ДАННЫХ</button>
+                        <input type="file" id="importFileInput" accept=".json" style="display:none;">
+                        <button id="clearDataBtn" class="settings-btn danger" style="margin-top:20px;">🗑️ ОЧИСТИТЬ ВСЕ ДАННЫЕ</button>
+                    </div>
+                </div>
+
+                <div class="footer-note">
+                    [ v2.0 · leaderboard · <span id="connectionStatus">🟢 онлайн</span> ]
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/app.js"></script>
+</body>
+</html>
